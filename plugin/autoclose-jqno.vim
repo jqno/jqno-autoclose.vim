@@ -66,16 +66,19 @@ endfunction
 " ***
 " Mappings
 " ***
-inoremap <expr><silent> ( AutocloseOpen('(', ')')
-inoremap <expr><silent> ) AutocloseClose(')')
-inoremap <expr><silent> [ AutocloseOpen('[', ']')
-inoremap <expr><silent> ] AutocloseClose(']')
-inoremap <expr><silent> { AutocloseOpen('{', '}')
-inoremap <expr><silent> } AutocloseClose('}')
-inoremap <expr><silent> " AutocloseToggle('"')
-inoremap <expr><silent> ' AutocloseToggle("'")
-inoremap <expr><silent> ` AutocloseToggle('`')
-inoremap <expr><silent> <BS> AutocloseSmartBackspace()
-inoremap <expr><silent> <CR> AutocloseSmartReturn()
-inoremap <expr><silent> <C-L> AutocloseSmartJump()
+augroup AutoClose
+    autocmd!
 
+    inoremap <expr><silent> ( AutocloseOpen('(', ')')
+    inoremap <expr><silent> ) AutocloseClose(')')
+    inoremap <expr><silent> [ AutocloseOpen('[', ']')
+    inoremap <expr><silent> ] AutocloseClose(']')
+    inoremap <expr><silent> { AutocloseOpen('{', '}')
+    inoremap <expr><silent> } AutocloseClose('}')
+    inoremap <expr><silent> " AutocloseToggle('"')
+    inoremap <expr><silent> ' AutocloseToggle("'")
+    inoremap <expr><silent> ` AutocloseToggle('`')
+    inoremap <expr><silent> <BS> AutocloseSmartBackspace()
+    inoremap <expr><silent> <CR> AutocloseSmartReturn()
+    inoremap <expr><silent> <C-L> AutocloseSmartJump()
+augroup END
