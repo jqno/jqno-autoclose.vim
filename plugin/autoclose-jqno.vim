@@ -2,10 +2,26 @@
 " Logic
 " ***
 
-let s:closers = { '(': ')', '[': ']', '{': '}', '''': '''', '"': '"', '`': '`' }
+let s:closers = { '(': ')', '[': ']', '{': '}', '<': '>', '''': '''', '"': '"', '`': '`', '|': '|' }
+let s:autoclosejqno_code = {
+    \   'parens': ['([{'],
+    \   'quotes': ['''"`'],
+    \ }
+let s:autoclosejqno_prose = {
+    \   'parens': ['([{'],
+    \   'quotes': ['''"`'],
+    \ }
+
 let s:autoclosejqno_config = {
-    \   'parens': ['(', '[', '{'],
-    \   'quotes': ['''', '"', '`'],
+    \   '_default': s:autoclosejqno_code,
+    \   'gitcommit': s:autoclosejqno_prose,
+    \   'html': { 'parens': '([{<', 'quotes': s:autoclosejqno_code['quotes'] },
+    \   'markdown': s:autoclosejqno_prose,
+    \   'text': s:autoclosejqno_prose,
+    \   'ruby': { 'parens': s:autoclosejqno_code['parens'], 'quotes': '''"`|' },
+    \   'rust': { 'parens': s:autoclosejqno_code['parens'], 'quotes': '''"`|' },
+    \   'vim': { 'parens': s:autoclosejqno_code['parens'], 'quotes': '''`' },
+    \   'xml': { 'parens': '([{<', 'quotes': s:autoclosejqno_code['quotes'] },
     \ }
 
 
@@ -70,11 +86,15 @@ function! s:PrevChar() abort
 endfunction
 
 function! s:Parens() abort
-    return s:autoclosejqno_config['parens']
+    return split(s:autoclosejqno_config[<SID>Filetype()]['parens'], '\zs')
 endfunction
 
 function! s:Quotes() abort
-    return s:autoclosejqno_config['quotes']
+    return split(s:autoclosejqno_config[<SID>Filetype()]['quotes'], '\zs')
+endfunction
+
+function! s:Filetype() abort
+    return &filetype ==# '' ? '_default' : &filetype
 endfunction
 
 function! s:Combined() abort
@@ -86,19 +106,22 @@ endfunction
 " Mappings
 " ***
 
-augroup AutoClose
-    autocmd!
+function! s:CreateMappings() abort
+    for c in <SID>Parens()
+        exec 'inoremap <expr><silent> ' . c . ' AutocloseOpen("' . c . '", "' . s:closers[c] . '")'
+    endfor
+    for c in <SID>Quotes()
+        let ch = c ==# '|' ? '\|' : c
+        exec 'inoremap <expr><silent> ' . ch . ' AutocloseToggle("' . c . '")'
+    endfor
 
-    inoremap <expr><silent> ( AutocloseOpen('(', ')')
-    inoremap <expr><silent> ) AutocloseClose(')')
-    inoremap <expr><silent> [ AutocloseOpen('[', ']')
-    inoremap <expr><silent> ] AutocloseClose(']')
-    inoremap <expr><silent> { AutocloseOpen('{', '}')
-    inoremap <expr><silent> } AutocloseClose('}')
-    inoremap <expr><silent> " AutocloseToggle('"')
-    inoremap <expr><silent> ' AutocloseToggle("'")
-    inoremap <expr><silent> ` AutocloseToggle('`')
     inoremap <expr><silent> <BS> AutocloseSmartBackspace()
     inoremap <expr><silent> <CR> AutocloseSmartReturn()
     inoremap <expr><silent> <C-L> AutocloseSmartJump()
+endfunction
+
+augroup AutoClose
+    autocmd!
+
+    autocmd BufReadPost * call <SID>CreateMappings()
 augroup END
