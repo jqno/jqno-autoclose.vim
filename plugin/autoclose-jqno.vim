@@ -10,7 +10,7 @@ let s:autoclosejqno_config = {
 
 
 function! AutocloseOpen(open, close) abort
-    return <SID>ExpandParenFully(1) ? a:open . a:close . "\<Left>" : a:open
+    return <SID>ExpandParenFully(v:true) ? a:open . a:close . "\<Left>" : a:open
 endfunction
 
 function! AutocloseClose(close) abort
@@ -18,14 +18,14 @@ function! AutocloseClose(close) abort
 endfunction
 
 function! AutocloseToggle(char) abort
-    return <SID>NextChar() == a:char ? "\<Right>" : <SID>ExpandParenFully(0) ? a:char . a:char . "\<Left>" : a:char
+    return <SID>NextChar() == a:char ? "\<Right>" : <SID>ExpandParenFully(v:false) ? a:char . a:char . "\<Left>" : a:char
 endfunction
 
 function! AutocloseSmartReturn() abort
     let l:prev = <SID>PrevChar()
     if pumvisible()
         return "\<C-Y>"
-    elseif l:prev !=? '' && index(s:autoclosejqno_config['parens'], l:prev) >= 0
+    elseif l:prev !=? '' && index(<SID>Parens(), l:prev) >= 0
         return "\<CR>\<Esc>O"
     else
         return "\<CR>"
@@ -35,7 +35,7 @@ endfunction
 function! AutocloseSmartBackspace() abort
     let l:prev = <SID>PrevChar()
     let l:next = <SID>NextChar()
-    for c in s:autoclosejqno_config['parens'] + s:autoclosejqno_config['quotes']
+    for c in <SID>Combined()
         if l:prev ==? c && l:next ==? s:closers[c]
             return "\<BS>\<Del>"
         endif
@@ -46,7 +46,7 @@ endfunction
 function! AutocloseSmartJump() abort
     let l:i = 0
     let l:result = ''
-    while index(s:autoclosejqno_config['parens'] + s:autoclosejqno_config['quotes'], <SID>NextChar(l:i)) >= 0
+    while index(<SID>Combined(), <SID>NextChar(l:i)) >= 0
         let l:result .= "\<Right>"
         let l:i += 1
     endwhile
@@ -55,7 +55,7 @@ endfunction
 
 function! s:ExpandParenFully(expandIfAfterWord) abort
     let l:nextchar = <SID>NextChar()
-    let l:nextok = l:nextchar ==? '' || index(s:autoclosejqno_config['parens'] + s:autoclosejqno_config['quotes'], l:nextchar) >= 0
+    let l:nextok = l:nextchar ==? '' || index(<SID>Combined(), l:nextchar) >= 0
     let l:prevchar = <SID>PrevChar()
     let l:prevok = a:expandIfAfterWord || l:prevchar !~# '\w'
     return l:nextok && l:prevok
@@ -69,10 +69,23 @@ function! s:PrevChar() abort
     return strpart(getline('.'), col('.')-2, 1)
 endfunction
 
+function! s:Parens() abort
+    return s:autoclosejqno_config['parens']
+endfunction
+
+function! s:Quotes() abort
+    return s:autoclosejqno_config['quotes']
+endfunction
+
+function! s:Combined() abort
+    return <SID>Parens() + <SID>Quotes()
+endfunction
+
 
 " ***
 " Mappings
 " ***
+
 augroup AutoClose
     autocmd!
 
