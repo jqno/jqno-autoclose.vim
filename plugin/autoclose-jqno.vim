@@ -1,6 +1,14 @@
 " ***
 " Logic
 " ***
+
+let s:closers = { '(': ')', '[': ']', '{': '}', '''': '''', '"': '"', '`': '`' }
+let s:autoclosejqno_config = {
+    \   'parens': ['(', '[', '{'],
+    \   'quotes': ['''', '"', '`'],
+    \ }
+
+
 function! AutocloseOpen(open, close) abort
     return <SID>ExpandParenFully(1) ? a:open . a:close . "\<Left>" : a:open
 endfunction
@@ -17,7 +25,7 @@ function! AutocloseSmartReturn() abort
     let l:prev = <SID>PrevChar()
     if pumvisible()
         return "\<C-Y>"
-    elseif l:prev !=? '' && index(['(', '[', '{'], l:prev) >= 0
+    elseif l:prev !=? '' && index(s:autoclosejqno_config['parens'], l:prev) >= 0
         return "\<CR>\<Esc>O"
     else
         return "\<CR>"
@@ -27,19 +35,18 @@ endfunction
 function! AutocloseSmartBackspace() abort
     let l:prev = <SID>PrevChar()
     let l:next = <SID>NextChar()
-    let l:doIt = (l:prev ==? '(' && l:next ==? ')') || (l:prev ==? '[' && l:next ==? ']') || (l:prev ==? '{' && l:next ==? '}') ||
-               \ (l:prev ==? '''' && l:next ==? '''') || (l:prev ==? '"' && l:next ==? '"') || (l:prev ==? '`' && l:next ==? '`')
-    if l:doIt
-        return "\<BS>\<Del>"
-    else
-        return "\<BS>"
-    endif
+    for c in s:autoclosejqno_config['parens'] + s:autoclosejqno_config['quotes']
+        if l:prev ==? c && l:next ==? s:closers[c]
+            return "\<BS>\<Del>"
+        endif
+    endfor
+    return "\<BS>"
 endfunction
 
 function! AutocloseSmartJump() abort
     let l:i = 0
     let l:result = ''
-    while index([' ', ')', ']', '}', '"', '''', '`'], <SID>NextChar(l:i)) >= 0
+    while index(s:autoclosejqno_config['parens'] + s:autoclosejqno_config['quotes'], <SID>NextChar(l:i)) >= 0
         let l:result .= "\<Right>"
         let l:i += 1
     endwhile
@@ -48,7 +55,7 @@ endfunction
 
 function! s:ExpandParenFully(expandIfAfterWord) abort
     let l:nextchar = <SID>NextChar()
-    let l:nextok = l:nextchar ==? '' || index([' ', ')', ']', '}', '"', '''', '`'], l:nextchar) >= 0
+    let l:nextok = l:nextchar ==? '' || index(s:autoclosejqno_config['parens'] + s:autoclosejqno_config['quotes'], l:nextchar) >= 0
     let l:prevchar = <SID>PrevChar()
     let l:prevok = a:expandIfAfterWord || l:prevchar !~# '\w'
     return l:nextok && l:prevok
