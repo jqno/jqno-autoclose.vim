@@ -116,13 +116,13 @@ endfunction
 
 function! s:CreateMappings() abort
     for c in <SID>Parens()
-        exec 'inoremap <expr><silent> ' . c . ' AutocloseOpen("' . c . '", "' . s:closers[c] . '")'
-        exec 'inoremap <expr><silent> ' . s:closers[c] . ' AutocloseClose("' . s:closers[c] . '")'
+        exec 'inoremap <expr><silent><buffer> ' . c . ' AutocloseOpen("' . c . '", "' . s:closers[c] . '")'
+        exec 'inoremap <expr><silent><buffer> ' . s:closers[c] . ' AutocloseClose("' . s:closers[c] . '")'
     endfor
     for c in <SID>Quotes()
         let l:mapchar = c ==? '|' ? '\|' : c
         let l:togglechar = c ==? '"' || c ==? '|' ? '\' . c : c
-        exec 'inoremap <expr><silent> ' . l:mapchar . ' AutocloseToggle("' . l:togglechar . '")'
+        exec 'inoremap <expr><silent><buffer> ' . l:mapchar . ' AutocloseToggle("' . l:togglechar . '")'
     endfor
 
     inoremap <expr><silent> <BS> AutocloseSmartBackspace()
