@@ -4,12 +4,12 @@
 
 let s:closers = { '(': ')', '[': ']', '{': '}', '<': '>', '''': '''', '"': '"', '`': '`', '|': '|' }
 let s:autoclosejqno_code = {
-    \   'parens': ['([{'],
-    \   'quotes': ['''"`'],
+    \   'parens': '([{',
+    \   'quotes': '''"`',
     \ }
 let s:autoclosejqno_prose = {
-    \   'parens': ['([{'],
-    \   'quotes': ['''"`'],
+    \   'parens': '([{',
+    \   'quotes': '''"`',
     \ }
 
 let s:autoclosejqno_config = {
@@ -34,7 +34,7 @@ function! AutocloseClose(close) abort
 endfunction
 
 function! AutocloseToggle(char) abort
-    return <SID>NextChar() == a:char ? "\<Right>" : <SID>ExpandParenFully(v:false) ? a:char . a:char . "\<Left>" : a:char
+    return <SID>NextChar() ==? a:char ? "\<Right>" : <SID>ExpandParenFully(v:false) ? a:char . a:char . "\<Left>" : a:char
 endfunction
 
 function! AutocloseSmartReturn() abort
@@ -94,7 +94,7 @@ function! s:Quotes() abort
 endfunction
 
 function! s:Filetype() abort
-    return &filetype ==# '' ? '_default' : &filetype
+    return &filetype ==? '' || !has_key(s:autoclosejqno_config, &filetype) ? '_default' : &filetype
 endfunction
 
 function! s:Combined() abort
@@ -109,10 +109,12 @@ endfunction
 function! s:CreateMappings() abort
     for c in <SID>Parens()
         exec 'inoremap <expr><silent> ' . c . ' AutocloseOpen("' . c . '", "' . s:closers[c] . '")'
+        exec 'inoremap <expr><silent> ' . s:closers[c] . ' AutocloseClose("' . s:closers[c] . '")'
     endfor
     for c in <SID>Quotes()
-        let ch = c ==# '|' ? '\|' : c
-        exec 'inoremap <expr><silent> ' . ch . ' AutocloseToggle("' . c . '")'
+        let l:mapchar = c ==? '|' ? '\|' : c
+        let l:togglechar = c ==? '"' || c ==? '|' ? '\' . c : c
+        exec 'inoremap <expr><silent> ' . l:mapchar . ' AutocloseToggle("' . l:togglechar . '")'
     endfor
 
     inoremap <expr><silent> <BS> AutocloseSmartBackspace()
@@ -123,5 +125,5 @@ endfunction
 augroup AutoClose
     autocmd!
 
-    autocmd BufReadPost * call <SID>CreateMappings()
+    autocmd BufReadPost,BufNewFile * call <SID>CreateMappings()
 augroup END
