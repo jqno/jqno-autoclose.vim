@@ -41,7 +41,7 @@ function! AutocloseSmartReturn() abort
     let l:prev = <SID>PrevChar()
     if pumvisible()
         return "\<C-Y>"
-    elseif l:prev !=? '' && index(<SID>Parens(), l:prev) >= 0
+    elseif l:prev !=? '' && index(b:autoclosejqno_parens, l:prev) >= 0
         return "\<CR>\<Esc>O"
     else
         return "\<CR>"
@@ -51,7 +51,7 @@ endfunction
 function! AutocloseSmartBackspace() abort
     let l:prev = <SID>PrevChar()
     let l:next = <SID>NextChar()
-    for c in <SID>Combined()
+    for c in b:autoclosejqno_combined
         if l:prev ==? c && l:next ==? s:closers[c]
             return "\<BS>\<Del>"
         endif
@@ -62,7 +62,7 @@ endfunction
 function! AutocloseSmartJump() abort
     let l:i = 0
     let l:result = ''
-    while index(<SID>Closers(), <SID>NextChar(l:i)) >= 0
+    while index(b:autoclosejqno_closers, <SID>NextChar(l:i)) >= 0
         let l:result .= "\<Right>"
         let l:i += 1
     endwhile
@@ -71,7 +71,7 @@ endfunction
 
 function! s:ExpandParenFully(expandIfAfterWord) abort
     let l:nextchar = <SID>NextChar()
-    let l:nextok = l:nextchar ==? '' || index(<SID>Closers(), l:nextchar) >= 0
+    let l:nextok = l:nextchar ==? '' || index(b:autoclosejqno_closers, l:nextchar) >= 0
     let l:prevchar = <SID>PrevChar()
     let l:prevok = a:expandIfAfterWord || l:prevchar !~# '\w'
     return l:nextok && l:prevok
@@ -85,6 +85,15 @@ function! s:PrevChar() abort
     return strpart(getline('.'), col('.')-2, 1)
 endfunction
 
+
+" ***
+" Helpers
+" ***
+
+function! s:Filetype() abort
+    return &filetype ==? '' || !has_key(s:autoclosejqno_config, &filetype) ? '_default' : &filetype
+endfunction
+
 function! s:Parens() abort
     return split(s:autoclosejqno_config[<SID>Filetype()]['parens'], '\zs')
 endfunction
@@ -93,20 +102,12 @@ function! s:Quotes() abort
     return split(s:autoclosejqno_config[<SID>Filetype()]['quotes'], '\zs')
 endfunction
 
-function! s:Combined() abort
-    return <SID>Parens() + <SID>Quotes()
-endfunction
-
-function! s:Closers() abort
+function! s:Closers(combined) abort
     let l:result = [' ']
-    for c in <SID>Combined()
+    for c in a:combined
         call add(l:result, s:closers[c])
     endfor
     return l:result
-endfunction
-
-function! s:Filetype() abort
-    return &filetype ==? '' || !has_key(s:autoclosejqno_config, &filetype) ? '_default' : &filetype
 endfunction
 
 
@@ -115,11 +116,16 @@ endfunction
 " ***
 
 function! s:CreateMappings() abort
-    for c in <SID>Parens()
+    let b:autoclosejqno_parens = <SID>Parens()
+    let b:autoclosejqno_quotes = <SID>Quotes()
+    let b:autoclosejqno_combined = b:autoclosejqno_parens + b:autoclosejqno_quotes
+    let b:autoclosejqno_closers = <SID>Closers(b:autoclosejqno_combined)
+
+    for c in b:autoclosejqno_parens
         exec 'inoremap <expr><silent><buffer> ' . c . ' AutocloseOpen("' . c . '", "' . s:closers[c] . '")'
         exec 'inoremap <expr><silent><buffer> ' . s:closers[c] . ' AutocloseClose("' . s:closers[c] . '")'
     endfor
-    for c in <SID>Quotes()
+    for c in b:autoclosejqno_quotes
         let l:mapchar = c ==? '|' ? '\|' : c
         let l:togglechar = c ==? '"' || c ==? '|' ? '\' . c : c
         exec 'inoremap <expr><silent><buffer> ' . l:mapchar . ' AutocloseToggle("' . l:togglechar . '")'
