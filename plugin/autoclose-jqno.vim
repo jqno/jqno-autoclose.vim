@@ -62,7 +62,7 @@ endfunction
 function! AutocloseSmartJump() abort
     let l:i = 0
     let l:result = ''
-    while index(<SID>Combined(), <SID>NextChar(l:i)) >= 0
+    while index(<SID>Closers(), <SID>NextChar(l:i)) >= 0
         let l:result .= "\<Right>"
         let l:i += 1
     endwhile
@@ -71,7 +71,7 @@ endfunction
 
 function! s:ExpandParenFully(expandIfAfterWord) abort
     let l:nextchar = <SID>NextChar()
-    let l:nextok = l:nextchar ==? '' || index(<SID>Combined(), l:nextchar) >= 0
+    let l:nextok = l:nextchar ==? '' || index(<SID>Closers(), l:nextchar) >= 0
     let l:prevchar = <SID>PrevChar()
     let l:prevok = a:expandIfAfterWord || l:prevchar !~# '\w'
     return l:nextok && l:prevok
@@ -93,12 +93,20 @@ function! s:Quotes() abort
     return split(s:autoclosejqno_config[<SID>Filetype()]['quotes'], '\zs')
 endfunction
 
-function! s:Filetype() abort
-    return &filetype ==? '' || !has_key(s:autoclosejqno_config, &filetype) ? '_default' : &filetype
-endfunction
-
 function! s:Combined() abort
     return <SID>Parens() + <SID>Quotes()
+endfunction
+
+function! s:Closers() abort
+    let l:result = [' ']
+    for c in <SID>Combined()
+        call add(l:result, s:closers[c])
+    endfor
+    return l:result
+endfunction
+
+function! s:Filetype() abort
+    return &filetype ==? '' || !has_key(s:autoclosejqno_config, &filetype) ? '_default' : &filetype
 endfunction
 
 
