@@ -46,10 +46,15 @@ endfunction
 function! AutocloseSmartReturn() abort
     let l:prev = <SID>PrevChar()
     let l:next = <SID>NextChar()
+    let l:prevprev = <SID>PrevChar(1)
     if pumvisible()
         return "\<C-Y>"
-    elseif l:prev !=? '' && index(b:autoclosejqno_parens, l:prev) >= 0 && l:next ==? b:autoclosejqno_openclose[l:prev]
+    elseif index(b:autoclosejqno_parens, l:prev) >= 0 &&
+                \ l:next ==? b:autoclosejqno_openclose[l:prev]
         return "\<CR>\<Esc>O"
+    elseif l:prev ==? ' ' && index(b:autoclosejqno_parens, l:prevprev) >= 0 &&
+                \ l:next ==? ' ' && <SID>NextChar(1) ==? b:autoclosejqno_openclose[l:prevprev]
+        return "\<BS>\<CR>\<Esc>O"
     else
         return "\<CR>"
     endif
@@ -68,14 +73,16 @@ endfunction
 function! AutocloseSmartBackspace() abort
     let l:prev = <SID>PrevChar()
     let l:next = <SID>NextChar()
-    for c in b:autoclosejqno_combined
-        if l:prev ==? c && l:next ==? b:autoclosejqno_openclose[c]
-            return "\<BS>\<Del>"
-        elseif l:prev ==? ' ' && <SID>PrevChar(1) ==? c && l:next ==? ' ' && <SID>NextChar(1) ==? b:autoclosejqno_openclose[c]
-            return "\<BS>\<Del>"
-        endif
-    endfor
-    return "\<BS>"
+    let l:prevprev = <SID>PrevChar(1)
+    if index(b:autoclosejqno_combined, l:prev) >= 0 &&
+                \ l:next ==? b:autoclosejqno_openclose[l:prev]
+        return "\<BS>\<Del>"
+    elseif l:prev ==? ' ' && index(b:autoclosejqno_combined, l:prevprev) >= 0 &&
+                \ l:next ==? ' ' && <SID>NextChar(1) ==? b:autoclosejqno_openclose[l:prevprev]
+        return "\<BS>\<Del>"
+    else
+        return "\<BS>"
+    endif
 endfunction
 
 function! AutocloseSmartJump() abort
