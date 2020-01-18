@@ -2,7 +2,7 @@
 " Logic
 " ***
 
-let s:closers = { '(': ')', '[': ']', '{': '}', '<': '>', '''': '''', '"': '"', '`': '`', '|': '|' }
+let s:openclosers = { '(': ')', '[': ']', '{': '}', '<': '>' }
 let s:autoclosejqno_code = {
     \   'parens': '([{',
     \   'quotes': '''"`',
@@ -48,7 +48,7 @@ function! AutocloseSmartReturn() abort
     let l:next = <SID>NextChar()
     if pumvisible()
         return "\<C-Y>"
-    elseif l:prev !=? '' && index(b:autoclosejqno_parens, l:prev) >= 0 && l:next ==? s:closers[l:prev]
+    elseif l:prev !=? '' && index(b:autoclosejqno_parens, l:prev) >= 0 && l:next ==? b:autoclosejqno_openclose[l:prev]
         return "\<CR>\<Esc>O"
     else
         return "\<CR>"
@@ -58,7 +58,7 @@ endfunction
 function! AutocloseSmartSpace() abort
     let l:prev = <SID>PrevChar()
     let l:next = <SID>NextChar()
-    if l:prev !=? '' && index(b:autoclosejqno_parens, l:prev) >= 0 && l:next ==? s:closers[l:prev]
+    if l:prev !=? '' && index(b:autoclosejqno_parens, l:prev) >= 0 && l:next ==? b:autoclosejqno_openclose[l:prev]
         return "  \<Left>"
     else
         return " "
@@ -69,9 +69,9 @@ function! AutocloseSmartBackspace() abort
     let l:prev = <SID>PrevChar()
     let l:next = <SID>NextChar()
     for c in b:autoclosejqno_combined
-        if l:prev ==? c && l:next ==? s:closers[c]
+        if l:prev ==? c && l:next ==? b:autoclosejqno_openclose[c]
             return "\<BS>\<Del>"
-        elseif l:prev ==? ' ' && <SID>PrevChar(1) ==? c && l:next ==? ' ' && <SID>NextChar(1) ==? s:closers[c]
+        elseif l:prev ==? ' ' && <SID>PrevChar(1) ==? c && l:next ==? ' ' && <SID>NextChar(1) ==? b:autoclosejqno_openclose[c]
             return "\<BS>\<Del>"
         endif
     endfor
@@ -121,10 +121,22 @@ function! s:Quotes() abort
     return split(s:autoclosejqno_config[<SID>Filetype()]['quotes'], '\zs')
 endfunction
 
+function! s:OpenClose(combined) abort
+    let l:result = {}
+    for c in a:combined
+        if has_key(s:openclosers, c)
+            let l:result[c] = s:openclosers[c]
+        else
+            let l:result[c] = c
+        end
+    endfor
+    return l:result
+endfunction
+
 function! s:Closers(combined) abort
     let l:result = [' ']
     for c in a:combined
-        call add(l:result, s:closers[c])
+        call add(l:result, b:autoclosejqno_openclose[c])
     endfor
     return l:result
 endfunction
@@ -138,11 +150,12 @@ function! s:CreateMappings() abort
     let b:autoclosejqno_parens = <SID>Parens()
     let b:autoclosejqno_quotes = <SID>Quotes()
     let b:autoclosejqno_combined = b:autoclosejqno_parens + b:autoclosejqno_quotes
+    let b:autoclosejqno_openclose = <SID>OpenClose(b:autoclosejqno_combined)
     let b:autoclosejqno_closers = <SID>Closers(b:autoclosejqno_combined)
 
     for c in b:autoclosejqno_parens
-        exec 'inoremap <expr><silent><buffer> ' . c . ' AutocloseOpen("' . c . '", "' . s:closers[c] . '")'
-        exec 'inoremap <expr><silent><buffer> ' . s:closers[c] . ' AutocloseClose("' . s:closers[c] . '")'
+        exec 'inoremap <expr><silent><buffer> ' . c . ' AutocloseOpen("' . c . '", "' . b:autoclosejqno_openclose[c] . '")'
+        exec 'inoremap <expr><silent><buffer> ' . b:autoclosejqno_openclose[c] . ' AutocloseClose("' . b:autoclosejqno_openclose[c] . '")'
     endfor
     for c in b:autoclosejqno_quotes
         let l:mapchar = c ==? '|' ? '\|' : c
