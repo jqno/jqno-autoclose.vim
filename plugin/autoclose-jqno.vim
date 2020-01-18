@@ -30,7 +30,13 @@ function! AutocloseOpen(open, close) abort
 endfunction
 
 function! AutocloseClose(close) abort
-    return <SID>NextChar() ==? a:close ? "\<Right>" : a:close
+    let l:i = 0
+    let l:result = "\<Right>"
+    while <SID>NextChar(l:i) ==? ' '
+        let l:result .= "\<Right>"
+        let l:i += 1
+    endwhile
+    return <SID>NextChar(l:i) ==? a:close ? l:result : a:close
 endfunction
 
 function! AutocloseToggle(char) abort
@@ -39,12 +45,23 @@ endfunction
 
 function! AutocloseSmartReturn() abort
     let l:prev = <SID>PrevChar()
+    let l:next = <SID>NextChar()
     if pumvisible()
         return "\<C-Y>"
-    elseif l:prev !=? '' && index(b:autoclosejqno_parens, l:prev) >= 0
+    elseif l:prev !=? '' && index(b:autoclosejqno_parens, l:prev) >= 0 && l:next ==? s:closers[l:prev]
         return "\<CR>\<Esc>O"
     else
         return "\<CR>"
+    endif
+endfunction
+
+function! AutocloseSmartSpace() abort
+    let l:prev = <SID>PrevChar()
+    let l:next = <SID>NextChar()
+    if l:prev !=? '' && index(b:autoclosejqno_parens, l:prev) >= 0 && l:next ==? s:closers[l:prev]
+        return "  \<Left>"
+    else
+        return " "
     endif
 endfunction
 
@@ -53,6 +70,8 @@ function! AutocloseSmartBackspace() abort
     let l:next = <SID>NextChar()
     for c in b:autoclosejqno_combined
         if l:prev ==? c && l:next ==? s:closers[c]
+            return "\<BS>\<Del>"
+        elseif l:prev ==? ' ' && <SID>PrevChar(1) ==? c && l:next ==? ' ' && <SID>NextChar(1) ==? s:closers[c]
             return "\<BS>\<Del>"
         endif
     endfor
@@ -81,8 +100,8 @@ function! s:NextChar(i = 0) abort
     return strpart(getline('.'), col('.')-1+a:i, 1)
 endfunction
 
-function! s:PrevChar() abort
-    return strpart(getline('.'), col('.')-2, 1)
+function! s:PrevChar(i = 0) abort
+    return strpart(getline('.'), col('.')-2-a:i, 1)
 endfunction
 
 
@@ -133,6 +152,7 @@ function! s:CreateMappings() abort
 
     inoremap <expr><silent> <BS> AutocloseSmartBackspace()
     inoremap <expr><silent> <CR> AutocloseSmartReturn()
+    inoremap <expr><silent> <Space> AutocloseSmartSpace()
     inoremap <expr><silent> <C-L> AutocloseSmartJump()
 endfunction
 
