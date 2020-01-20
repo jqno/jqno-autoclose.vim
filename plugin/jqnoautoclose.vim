@@ -88,7 +88,7 @@ endfunction
 function! JqnoAutocloseSmartJump() abort
     let l:i = 0
     let l:result = ''
-    while index(b:jqnoautoclose_closers, <SID>NextChar(l:i)) >= 0
+    while index(b:jqnoautoclose_allclosers, <SID>NextChar(l:i)) >= 0
         let l:result .= "\<Right>"
         let l:i += 1
     endwhile
@@ -97,7 +97,7 @@ endfunction
 
 function! s:ExpandParenFully(expandIfAfterWord) abort
     let l:nextchar = <SID>NextChar()
-    let l:nextok = l:nextchar ==? '' || index(b:jqnoautoclose_closers, l:nextchar) >= 0
+    let l:nextok = l:nextchar ==? '' || index(b:jqnoautoclose_parenclosers, l:nextchar) >= 0
     let l:prevchar = <SID>PrevChar()
     let l:prevok = a:expandIfAfterWord || l:prevchar !~# '\w'
     return l:nextok && l:prevok
@@ -140,9 +140,9 @@ function! s:OpenClose(combined) abort
     return l:result
 endfunction
 
-function! s:Closers(combined) abort
+function! s:Closers(openers) abort
     let l:result = [' ']
-    for c in a:combined
+    for c in a:openers
         call add(l:result, b:jqnoautoclose_openclose[c])
     endfor
     return l:result
@@ -158,7 +158,8 @@ function! s:CreateMappings() abort
     let b:jqnoautoclose_quotes = <SID>Quotes()
     let b:jqnoautoclose_combined = b:jqnoautoclose_parens + b:jqnoautoclose_quotes
     let b:jqnoautoclose_openclose = <SID>OpenClose(b:jqnoautoclose_combined)
-    let b:jqnoautoclose_closers = <SID>Closers(b:jqnoautoclose_combined)
+    let b:jqnoautoclose_parenclosers = <SID>Closers(b:jqnoautoclose_parens)
+    let b:jqnoautoclose_allclosers = <SID>Closers(b:jqnoautoclose_combined)
 
     for c in b:jqnoautoclose_parens
         exec 'inoremap <expr><silent><buffer> ' . c . ' JqnoAutocloseOpen("' . c . '", "' . b:jqnoautoclose_openclose[c] . '")'
