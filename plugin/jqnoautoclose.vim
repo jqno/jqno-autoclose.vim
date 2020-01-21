@@ -86,6 +86,9 @@ function! JqnoAutocloseSmartBackspace() abort
 endfunction
 
 function! JqnoAutocloseSmartJump() abort
+    if <SID>NextChar() ==? '' && index(b:jqnoautoclose_parenclosers, trim(getline(line('.')+1))) >= 0
+        return "\<Down>\<End>"
+    endif
     let l:i = 0
     let l:result = ''
     while index(b:jqnoautoclose_allclosers, <SID>NextChar(l:i)) >= 0
