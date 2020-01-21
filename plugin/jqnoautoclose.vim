@@ -174,10 +174,10 @@ function! s:CreateMappings() abort
         exec 'inoremap <expr><silent><buffer> ' . l:mapchar . ' JqnoAutocloseToggle("' . l:togglechar . '")'
     endfor
 
-    inoremap <expr><silent> <BS> JqnoAutocloseSmartBackspace()
-    inoremap <expr><silent> <CR> JqnoAutocloseSmartReturn()
-    inoremap <expr><silent> <Space> JqnoAutocloseSmartSpace()
-    inoremap <expr><silent> <C-L> JqnoAutocloseSmartJump()
+    inoremap <expr><silent><buffer> <BS> JqnoAutocloseSmartBackspace()
+    inoremap <expr><silent><buffer> <CR> JqnoAutocloseSmartReturn()
+    inoremap <expr><silent><buffer> <Space> JqnoAutocloseSmartSpace()
+    inoremap <expr><silent><buffer> <C-L> JqnoAutocloseSmartJump()
 endfunction
 
 augroup AutoClose
