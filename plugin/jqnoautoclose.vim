@@ -1,3 +1,8 @@
+if exists('g:loaded_jqno_autoclose')
+    finish
+endif
+let g:loaded_jqno_autoclose = 1
+
 " ***
 " Logic
 " ***
@@ -182,9 +187,14 @@ function! s:CreateMappings() abort
     endfor
 
     inoremap <expr><silent><buffer> <BS> JqnoAutocloseSmartBackspace()
-    inoremap <expr><silent><buffer> <CR> JqnoAutocloseSmartReturn()
     inoremap <expr><silent><buffer> <Space> JqnoAutocloseSmartSpace()
     inoremap <expr><silent><buffer> <C-L> JqnoAutocloseSmartJump()
+
+    if exists('g:loaded_jqno_autoclose')
+        inoremap <expr><silent> <CR> pumvisible() ? tabjqno#accept() : JqnoAutocloseSmartReturn()
+    else
+        inoremap <expr><silent><buffer> <CR> JqnoAutocloseSmartReturn()
+    endif
 endfunction
 
 augroup AutoClose
