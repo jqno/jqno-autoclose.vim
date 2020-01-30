@@ -49,6 +49,10 @@ function! JqnoAutocloseToggle(char) abort
 endfunction
 
 function! JqnoAutocloseSmartReturn() abort
+    if !exists('b:jqnoautoclose_active')
+        return "\<CR>"
+    endif
+
     let l:prev = <SID>PrevChar()
     let l:next = <SID>NextChar()
     let l:prevprev = <SID>PrevChar(1)
@@ -167,6 +171,7 @@ endfunction
 " ***
 
 function! s:CreateMappings() abort
+    let b:jqnoautoclose_active = 1
     let b:jqnoautoclose_parens = <SID>Parens()
     let b:jqnoautoclose_quotes = <SID>Quotes()
     let b:jqnoautoclose_combined = b:jqnoautoclose_parens + b:jqnoautoclose_quotes
