@@ -52,9 +52,7 @@ function! JqnoAutocloseSmartReturn() abort
     let l:prev = <SID>PrevChar()
     let l:next = <SID>NextChar()
     let l:prevprev = <SID>PrevChar(1)
-    if pumvisible()
-        return "\<C-Y>"
-    elseif index(b:jqnoautoclose_parens, l:prev) >= 0 &&
+    if index(b:jqnoautoclose_parens, l:prev) >= 0 &&
                 \ l:next ==? b:jqnoautoclose_openclose[l:prev]
         return "\<CR>\<Esc>O"
     elseif l:prev ==? ' ' && index(b:jqnoautoclose_parens, l:prevprev) >= 0 &&
