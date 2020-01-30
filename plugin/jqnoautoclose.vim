@@ -203,7 +203,7 @@ endfunction
 augroup AutoClose
     autocmd!
 
-    autocmd BufReadPost,BufNewFile * call <SID>CreateMappings()
+    autocmd VimEnter,BufReadPost,BufNewFile * call <SID>CreateMappings()
 
     " I promised myself I wouldn't do this, but: here's some special-case logic for HTML and XML:
     " after </, remove the closing > again and call omni-complete instead (which will also close the tag).
