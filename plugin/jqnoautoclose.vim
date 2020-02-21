@@ -46,7 +46,22 @@ function! JqnoAutocloseClose(close) abort
 endfunction
 
 function! JqnoAutocloseToggle(char) abort
-    return <SID>NextChar() ==? a:char ? "\<Right>" : <SID>ExpandParenFully(v:false) ? a:char . a:char . "\<Left>" : a:char
+    if <SID>NextChar() ==? a:char
+        let l:i = 0
+        let l:result = ""
+        while <SID>NextChar(l:i) ==? a:char
+            let l:result .= "\<Right>"
+            let l:i += 1
+        endwhile
+        return l:result
+    endif
+    if <SID>ExpandParenFully(v:false)
+        if <SID>PrevChar() ==? a:char && <SID>PrevChar() ==? a:char
+            return a:char . a:char . a:char . a:char . "\<Left>\<Left>\<Left>"
+        endif
+        return a:char . a:char . "\<Left>"
+    endif
+    return a:char
 endfunction
 
 function! JqnoAutocloseSmartReturn() abort
