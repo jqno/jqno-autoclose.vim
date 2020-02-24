@@ -24,7 +24,7 @@ let s:jqnoautoclose_config = {
     \   'markdown': s:jqnoautoclose_prose,
     \   'text': s:jqnoautoclose_prose,
     \   'ruby': { 'parens': s:jqnoautoclose_code['parens'], 'quotes': '''"`|' },
-    \   'rust': { 'parens': s:jqnoautoclose_code['parens'], 'quotes': '''"`|' },
+    \   'rust': { 'parens': s:jqnoautoclose_code['parens'], 'quotes': '"`|' },
     \   'vim': { 'parens': s:jqnoautoclose_code['parens'], 'quotes': '''`' },
     \   'xml': { 'parens': '([{<', 'quotes': s:jqnoautoclose_code['quotes'] },
     \   'xml.pom': { 'parens': '([{<', 'quotes': s:jqnoautoclose_code['quotes'] },
