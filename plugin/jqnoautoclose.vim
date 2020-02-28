@@ -56,10 +56,12 @@ function! JqnoAutocloseToggle(char) abort
         return l:result
     endif
     if <SID>ExpandParenFully(v:false)
-        if <SID>PrevChar() ==? a:char && <SID>PrevChar() ==? a:char
+        if <SID>PrevChar() ==? a:char && <SID>PrevChar(1) ==? a:char
             return a:char . a:char . a:char . a:char . "\<Left>\<Left>\<Left>"
         endif
-        return a:char . a:char . "\<Left>"
+        if <SID>PrevChar() !=? a:char
+            return a:char . a:char . "\<Left>"
+        endif
     endif
     return a:char
 endfunction
