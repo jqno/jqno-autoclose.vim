@@ -135,7 +135,7 @@ endfunction
 
 function! s:ExpandParenFully(expandIfAfterWord) abort
     let l:nextchar = <SID>NextChar()
-    let l:nextok = l:nextchar ==? '' || index(b:jqnoautoclose_parenclosers, l:nextchar) >= 0
+    let l:nextok = l:nextchar ==? '' || l:nextchar ==? ',' || index(b:jqnoautoclose_parenclosers, l:nextchar) >= 0
     let l:prevchar = <SID>PrevChar()
     let l:prevok = a:expandIfAfterWord || l:prevchar !~# '\w'
     return l:nextok && l:prevok
