@@ -16,6 +16,7 @@ let s:jqnoautoclose_prose = {
     \   'parens': '([{',
     \   'quotes': '''"`',
     \ }
+let s:jqnoautoclose_punctuation = [ '.', ',', ':', ';', '?', '!', '=', '+', '-', '*', '/' ]
 
 let s:jqnoautoclose_config = {
     \   '_default': s:jqnoautoclose_code,
@@ -135,7 +136,7 @@ endfunction
 
 function! s:ExpandParenFully(expandIfAfterWord) abort
     let l:nextchar = <SID>NextChar()
-    let l:nextok = l:nextchar ==? '' || l:nextchar ==? ',' || index(b:jqnoautoclose_parenclosers, l:nextchar) >= 0
+    let l:nextok = l:nextchar ==? '' || index(s:jqnoautoclose_punctuation, l:nextchar) >= 0 || index(b:jqnoautoclose_parenclosers, l:nextchar) >= 0
     let l:prevchar = <SID>PrevChar()
     let l:prevok = a:expandIfAfterWord || l:prevchar !~# '\w'
     return l:nextok && l:prevok
