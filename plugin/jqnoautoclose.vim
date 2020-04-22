@@ -215,8 +215,8 @@ function! s:CreateMappings() abort
     inoremap <expr><silent><buffer> <Space> JqnoAutocloseSmartSpace()
     inoremap <expr><silent><buffer> <C-L> JqnoAutocloseSmartJump()
 
-    if exists('g:loaded_jqno_autoclose')
-        inoremap <expr><silent> <CR> pumvisible() ? tabjqno#accept() : JqnoAutocloseSmartReturn()
+    if exists('g:loaded_jqno_tab')
+        inoremap <expr><silent><buffer> <CR> pumvisible() ? tabjqno#accept() : JqnoAutocloseSmartReturn()
     else
         inoremap <expr><silent><buffer> <CR> JqnoAutocloseSmartReturn()
     endif
