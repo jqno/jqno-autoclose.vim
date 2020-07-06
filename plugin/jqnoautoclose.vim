@@ -112,6 +112,11 @@ function! JqnoAutocloseSmartBackspace() abort
 endfunction
 
 function! JqnoAutocloseSmartJump() abort
+    if exists('g:did_coc_loaded')
+        if coc#jumpable()
+            return "\<C-r>=coc#rpc#request('doKeymap', ['snippets-expand-jump', ''])\<CR>"
+        endif
+    endif
     if <SID>NextChar() ==? '' && index(b:jqnoautoclose_parenclosers, trim(getline(line('.')+1))) >= 0
         return "\<Down>\<End>"
     endif
