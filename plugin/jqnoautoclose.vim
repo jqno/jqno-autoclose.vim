@@ -112,14 +112,21 @@ function! JqnoAutocloseSmartBackspace() abort
 endfunction
 
 function! JqnoAutocloseSmartJump() abort
+    " First, if a CoC jump is possible, do that.
     if exists('g:did_coc_loaded')
         if coc#jumpable()
             return "\<C-r>=coc#rpc#request('doKeymap', ['snippets-expand-jump', ''])\<CR>"
         endif
     endif
+    " Next, if at the end of the line and the next line contains a closer, jump to the end of that next line.
     if <SID>NextChar() ==? '' && index(b:jqnoautoclose_parenclosers, trim(getline(line('.')+1))) >= 0
         return "\<Down>\<End>"
     endif
+    " Next, if the next char is punctuation, jump through that.
+    if index(s:jqnoautoclose_punctuation, <SID>NextChar()) >= 0
+        return "\<Right>"
+    endif
+    " Finally, jump through parens and quotes.
     let l:i = 0
     let l:result = ''
     while index(b:jqnoautoclose_allclosers, <SID>NextChar(l:i)) >= 0
