@@ -81,6 +81,8 @@ function! JqnoAutocloseSmartReturn() abort
     elseif l:prev ==? ' ' && index(b:jqnoautoclose_parens, l:prevprev) >= 0 &&
                 \ l:next ==? ' ' && <SID>NextChar(1) ==? b:jqnoautoclose_openclose[l:prevprev]
         return "\<BS>\<CR>\<Esc>O"
+    elseif exists('g:loaded_endwise')
+        return "\<CR>\<C-R>=EndwiseDiscretionary()\<CR>"
     else
         return "\<CR>"
     endif
