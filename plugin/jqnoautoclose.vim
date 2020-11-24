@@ -141,7 +141,7 @@ endfunction
 function! JqnoAutocloseSmartSlash() abort
     if <SID>PrevChar() ==? '<'
         if <SID>NextChar() ==? '>'
-            return "/\<Del>\<C-X>\<C-O>"
+            return "\<Del>/\<C-X>\<C-O>"
         endif
         return "/\<C-X>\<C-O>"
     endif
