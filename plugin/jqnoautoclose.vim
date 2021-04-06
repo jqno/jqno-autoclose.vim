@@ -190,7 +190,7 @@ function! s:OpenClose(combined) abort
             let l:result[c] = s:jqnoautoclose_openclosers[c]
         else
             let l:result[c] = c
-        end
+        endif
     endfor
     return l:result
 endfunction
@@ -231,7 +231,9 @@ function! s:CreateMappings() abort
     inoremap <expr><silent><buffer> <Space> JqnoAutocloseSmartSpace()
     inoremap <expr><silent><buffer> <C-L> JqnoAutocloseSmartJump()
 
-    inoremap <expr><silent><buffer> <CR> JqnoAutocloseSmartReturn()
+    if maparg('<CR>', 'i') ==# ''
+        inoremap <expr><silent><buffer> <CR> JqnoAutocloseSmartReturn()
+    endif
 endfunction
 
 augroup AutoClose
