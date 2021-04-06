@@ -150,16 +150,6 @@ function! JqnoAutocloseSmartJump() abort
     return l:result
 endfunction
 
-function! JqnoAutocloseSmartSlash() abort
-    if <SID>PrevChar() ==? '<'
-        if <SID>NextChar() ==? '>'
-            return "\<Del>/\<C-X>\<C-O>"
-        endif
-        return "/\<C-X>\<C-O>"
-    endif
-    return '/'
-endfunction
-
 function! s:ExpandParenFully(expandIfAfterWord) abort
     let l:nextchar = <SID>NextChar()
     let l:nextok = l:nextchar ==? '' || index(s:jqnoautoclose_punctuation, l:nextchar) >= 0 || index(b:jqnoautoclose_parenclosers, l:nextchar) >= 0
@@ -252,9 +242,4 @@ augroup AutoClose
     autocmd!
 
     autocmd VimEnter,BufReadPost,BufNewFile * call <SID>CreateMappings()
-
-    " I promised myself I wouldn't do this, but: here's some special-case logic for HTML and XML:
-    " after </, remove the closing > again and call omni-complete instead (which will also close the tag).
-    autocmd FileType xml inoremap <silent><expr><buffer> / JqnoAutocloseSmartSlash()
-    autocmd FileType html inoremap <silent><expr><buffer> / JqnoAutocloseSmartSlash()
 augroup END
