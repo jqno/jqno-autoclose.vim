@@ -7,6 +7,18 @@ let g:loaded_jqno_autoclose = 1
 " Logic
 " ***
 
+" 7.4.849 support <C-G>U to avoid breaking '.'
+" Issue talk: https://github.com/jiangmiao/auto-pairs/issues/3
+" Vim note: https://github.com/vim/vim/releases/tag/v7.4.849
+" Solution 'borrowed' from jiangmiao/auto-pairs
+if v:version > 704 || v:version == 704 && has("patch849")
+  let s:Go = "\<C-G>U"
+else
+  let s:Go = ""
+endif
+let s:Left = s:Go . "\<Left>"
+let s:Right = s:Go . "\<Right>"
+
 let s:jqnoautoclose_openclosers = { '(': ')', '[': ']', '{': '}', '<': '>' }
 let s:jqnoautoclose_code = {
     \   'parens': '([{',
@@ -33,14 +45,14 @@ let s:jqnoautoclose_config = {
 
 
 function! JqnoAutocloseOpen(open, close) abort
-    return <SID>ExpandParenFully(v:true) ? a:open . a:close . "\<Left>" : a:open
+    return <SID>ExpandParenFully(v:true) ? a:open . a:close . s:Left : a:open
 endfunction
 
 function! JqnoAutocloseClose(close) abort
     let l:i = 0
-    let l:result = "\<Right>"
+    let l:result = s:Right
     while <SID>NextChar(l:i) ==? ' '
-        let l:result .= "\<Right>"
+        let l:result .= s:Right
         let l:i += 1
     endwhile
     return <SID>NextChar(l:i) ==? a:close ? l:result : a:close
@@ -51,17 +63,17 @@ function! JqnoAutocloseToggle(char) abort
         let l:i = 0
         let l:result = ""
         while <SID>NextChar(l:i) ==? a:char
-            let l:result .= "\<Right>"
+            let l:result .= s:Right
             let l:i += 1
         endwhile
         return l:result
     endif
     if <SID>ExpandParenFully(v:false)
         if <SID>PrevChar() ==? a:char && <SID>PrevChar(1) ==? a:char
-            return a:char . a:char . a:char . a:char . "\<Left>\<Left>\<Left>"
+            return a:char . a:char . a:char . a:char . s:Left . s:Left . s:Left
         endif
         if <SID>PrevChar() !=? a:char
-            return a:char . a:char . "\<Left>"
+            return a:char . a:char . s:Left
         endif
     endif
     return a:char
@@ -126,13 +138,13 @@ function! JqnoAutocloseSmartJump() abort
     endif
     " Next, if the next char is punctuation, jump through that.
     if index(s:jqnoautoclose_punctuation, <SID>NextChar()) >= 0
-        return "\<Right>"
+        return s:Right
     endif
     " Finally, jump through parens and quotes.
     let l:i = 0
     let l:result = ''
     while index(b:jqnoautoclose_allclosers, <SID>NextChar(l:i)) >= 0
-        let l:result .= "\<Right>"
+        let l:result .= s:Right
         let l:i += 1
     endwhile
     return l:result
