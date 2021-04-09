@@ -3,6 +3,10 @@ if exists('g:loaded_jqno_autoclose')
 endif
 let g:loaded_jqno_autoclose = 1
 
+" We don't want conflicting <CR> mappings.
+" This plugin will call Endwise when needed.
+let g:endwise_no_mappings = 1
+
 " ***
 " Logic
 " ***
