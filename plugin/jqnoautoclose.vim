@@ -37,14 +37,14 @@ let s:jqnoautoclose_punctuation = [ '.', ',', ':', ';', '?', '!', '=', '+', '-',
 let s:jqnoautoclose_config = {
     \   '_default': s:jqnoautoclose_code,
     \   'gitcommit': s:jqnoautoclose_prose,
-    \   'html': { 'parens': '([{<', 'quotes': s:jqnoautoclose_code['quotes'] },
+    \   'html': s:jqnoautoclose_code,
     \   'markdown': s:jqnoautoclose_prose,
     \   'text': s:jqnoautoclose_prose,
     \   'ruby': { 'parens': s:jqnoautoclose_code['parens'], 'quotes': '''"`|' },
     \   'rust': { 'parens': s:jqnoautoclose_code['parens'], 'quotes': '"`|' },
     \   'vim': { 'parens': s:jqnoautoclose_code['parens'], 'quotes': '''`' },
-    \   'xml': { 'parens': '([{<', 'quotes': s:jqnoautoclose_code['quotes'] },
-    \   'xml.pom': { 'parens': '([{<', 'quotes': s:jqnoautoclose_code['quotes'] },
+    \   'xml': s:jqnoautoclose_code,
+    \   'xml.pom': s:jqnoautoclose_code,
     \ }
 
 
