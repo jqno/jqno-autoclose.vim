@@ -136,6 +136,10 @@ function! JqnoAutocloseSmartJump() abort
             return "\<C-r>=coc#rpc#request('doKeymap', ['snippets-expand-jump', ''])\<CR>"
         endif
     endif
+    " Then, if an UltiSnips jump is possible, do that.
+    if exists('g:did_plugin_ultisnips') && UltiSnips#CanJumpForwards()
+        return "\<C-R>=UltiSnips#JumpForwards()\<CR>"
+    endif
     " Next, if at the end of the line and the next line contains a closer, jump to the end of that next line.
     if <SID>NextChar() ==? '' && index(b:jqnoautoclose_parenclosers, trim(getline(line('.')+1))) >= 0
         return "\<Down>\<End>"
