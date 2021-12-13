@@ -237,8 +237,10 @@ function! s:CreateMappings() abort
 
     inoremap <expr><silent><buffer> <BS> JqnoAutocloseSmartBackspace()
     inoremap <expr><silent><buffer> <Space> JqnoAutocloseSmartSpace()
-    inoremap <expr><silent><buffer> <C-L> JqnoAutocloseSmartJump()
 
+    if maparg('<C-L>', 'i') ==# ''
+        inoremap <expr><silent><buffer> <C-L> JqnoAutocloseSmartJump()
+    endif
     if maparg('<CR>', 'i') ==# ''
         inoremap <expr><silent><buffer> <CR> JqnoAutocloseSmartReturn()
     endif
