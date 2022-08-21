@@ -27,10 +27,12 @@ let s:jqnoautoclose_openclosers = { '(': ')', '[': ']', '{': '}', '<': '>' }
 let s:jqnoautoclose_code = {
     \   'parens': '([{',
     \   'quotes': '''"`',
+    \   'triplequotes': '"',
     \ }
 let s:jqnoautoclose_prose = {
     \   'parens': '([{',
     \   'quotes': '''"`',
+    \   'triplequotes': '',
     \ }
 let s:jqnoautoclose_punctuation = [ '.', ',', ':', ';', '?', '!', '=', '+', '-', '*', '/' ]
 
@@ -38,11 +40,11 @@ let s:jqnoautoclose_config = {
     \   '_default': s:jqnoautoclose_code,
     \   'gitcommit': s:jqnoautoclose_prose,
     \   'html': s:jqnoautoclose_code,
-    \   'markdown': s:jqnoautoclose_prose,
+    \   'markdown': { 'parens': s:jqnoautoclose_prose['parens'], 'quotes': s:jqnoautoclose_prose['quotes'], 'triplequotes': '`:' },
     \   'text': s:jqnoautoclose_prose,
-    \   'ruby': { 'parens': s:jqnoautoclose_code['parens'], 'quotes': '''"`|' },
-    \   'rust': { 'parens': s:jqnoautoclose_code['parens'], 'quotes': '"`|' },
-    \   'vim': { 'parens': s:jqnoautoclose_code['parens'], 'quotes': '''`' },
+    \   'ruby': { 'parens': s:jqnoautoclose_code['parens'], 'quotes': '''"`|', 'triplequotes': s:jqnoautoclose_code['triplequotes'] },
+    \   'rust': { 'parens': s:jqnoautoclose_code['parens'], 'quotes': '"`|', 'triplequotes': s:jqnoautoclose_code['triplequotes'] },
+    \   'vim': { 'parens': s:jqnoautoclose_code['parens'], 'quotes': '''`', 'triplequotes': s:jqnoautoclose_code['triplequotes'] },
     \   'xml': s:jqnoautoclose_code,
     \   'xml.pom': s:jqnoautoclose_code,
     \ }
@@ -73,10 +75,12 @@ function! JqnoAutocloseToggle(char) abort
         return l:result
     endif
     if <SID>ExpandParenFully(v:false)
-        if <SID>PrevChar() ==? a:char && <SID>PrevChar(1) ==? a:char
+        if index(b:jqnoautoclose_triplequotes, a:char) >= 0 &&
+                    \ <SID>PrevChar() ==? a:char && <SID>PrevChar(1) ==? a:char
             return a:char . a:char . a:char . a:char . s:Left . s:Left . s:Left
         endif
-        if <SID>PrevChar() !=? a:char
+        if index(b:jqnoautoclose_quotes, a:char) >= 0 &&
+                    \ <SID>PrevChar() !=? a:char
             return a:char . a:char . s:Left
         endif
     endif
@@ -191,6 +195,20 @@ function! s:Quotes() abort
     return split(s:jqnoautoclose_config[<SID>Filetype()]['quotes'], '\zs')
 endfunction
 
+function! s:Triplequotes() abort
+    return split(s:jqnoautoclose_config[<SID>Filetype()]['triplequotes'], '\zs')
+endfunction
+
+function! s:AllQuotes() abort
+    let l:result = deepcopy(b:jqnoautoclose_quotes)
+    for c in b:jqnoautoclose_triplequotes
+        if index(b:jqnoautoclose_quotes, c) == -1
+            let l:result += [c]
+        endif
+    endfor
+    return l:result
+endfunction
+
 function! s:OpenClose(combined) abort
     let l:result = {}
     for c in a:combined
@@ -220,7 +238,9 @@ function! s:CreateMappings() abort
     let b:jqnoautoclose_active = 1
     let b:jqnoautoclose_parens = <SID>Parens()
     let b:jqnoautoclose_quotes = <SID>Quotes()
-    let b:jqnoautoclose_combined = b:jqnoautoclose_parens + b:jqnoautoclose_quotes
+    let b:jqnoautoclose_triplequotes = <SID>Triplequotes()
+    let b:jqnoautoclose_all_quotes = <SID>AllQuotes()
+    let b:jqnoautoclose_combined = b:jqnoautoclose_parens + b:jqnoautoclose_all_quotes
     let b:jqnoautoclose_openclose = <SID>OpenClose(b:jqnoautoclose_combined)
     let b:jqnoautoclose_parenclosers = <SID>Closers(b:jqnoautoclose_parens)
     let b:jqnoautoclose_allclosers = <SID>Closers(b:jqnoautoclose_combined)
@@ -229,7 +249,7 @@ function! s:CreateMappings() abort
         exec 'inoremap <expr><silent><buffer> ' . c . ' JqnoAutocloseOpen("' . c . '", "' . b:jqnoautoclose_openclose[c] . '")'
         exec 'inoremap <expr><silent><buffer> ' . b:jqnoautoclose_openclose[c] . ' JqnoAutocloseClose("' . b:jqnoautoclose_openclose[c] . '")'
     endfor
-    for c in b:jqnoautoclose_quotes
+    for c in b:jqnoautoclose_all_quotes
         let l:mapchar = c ==? '|' ? '\|' : c
         let l:togglechar = c ==? '"' || c ==? '|' ? '\' . c : c
         exec 'inoremap <expr><silent><buffer> ' . l:mapchar . ' JqnoAutocloseToggle("' . l:togglechar . '")'
