@@ -305,9 +305,7 @@ function! s:CreateMappings() abort
     if maparg('<C-L>', 'i') ==# ''
         inoremap <expr><silent><buffer> <C-L> JqnoAutocloseSmartJump()
     endif
-    if maparg('<CR>', 'i') ==# ''
-        inoremap <expr><silent><buffer> <CR> JqnoAutocloseSmartReturn()
-    endif
+    inoremap <expr><silent><buffer> <CR> JqnoAutocloseSmartReturn()
 endfunction
 
 augroup AutoClose
