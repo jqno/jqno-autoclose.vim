@@ -24,6 +24,9 @@ function! s:Config(base, overrides = {}) abort
     if has_key(a:overrides, 'parens')
         let l:result.parens = deepcopy(a:overrides.parens)
     endif
+    if has_key(a:overrides, 'parens_backspaceonly')
+        let l:result.parens_backspaceonly = deepcopy(a:overrides.parens_backspaceonly)
+    endif
     if has_key(a:overrides, 'quotes')
         let l:result.quotes = deepcopy(a:overrides.quotes)
     endif
@@ -39,12 +42,14 @@ endfunction
 let s:jqnoautoclose_openclosers = { '(': ')', '[': ']', '{': '}', '<': '>' }
 let s:jqnoautoclose_code = {
     \   'parens': '([{',
+    \   'parens_backspaceonly': '<',
     \   'quotes': '''"`',
     \   'doublequotes': '',
     \   'triplequotes': '',
     \ }
 let s:jqnoautoclose_prose = {
     \   'parens': '([{',
+    \   'parens_backspaceonly' : '',
     \   'quotes': '''"`',
     \   'doublequotes': '',
     \   'triplequotes': '',
@@ -225,6 +230,10 @@ function! s:Parens() abort
     return split(s:jqnoautoclose_config[<SID>Filetype()]['parens'], '\zs')
 endfunction
 
+function! s:BackspaceOnly() abort
+    return split(s:jqnoautoclose_config[<SID>Filetype()]['parens_backspaceonly'], '\zs')
+endfunction
+
 function! s:Quotes() abort
     return split(s:jqnoautoclose_config[<SID>Filetype()]['quotes'], '\zs')
 endfunction
@@ -280,11 +289,12 @@ endfunction
 function! s:CreateMappings() abort
     let b:jqnoautoclose_active = 1
     let b:jqnoautoclose_parens = <SID>Parens()
+    let b:jqnoautoclose_backspaceonly = <SID>BackspaceOnly()
     let b:jqnoautoclose_quotes = <SID>Quotes()
     let b:jqnoautoclose_doublequotes = <SID>Doublequotes()
     let b:jqnoautoclose_triplequotes = <SID>Triplequotes()
     let b:jqnoautoclose_all_quotes = <SID>AllQuotes()
-    let b:jqnoautoclose_combined = b:jqnoautoclose_parens + b:jqnoautoclose_all_quotes
+    let b:jqnoautoclose_combined = b:jqnoautoclose_parens + b:jqnoautoclose_all_quotes + b:jqnoautoclose_backspaceonly
     let b:jqnoautoclose_openclose = <SID>OpenClose(b:jqnoautoclose_combined)
     let b:jqnoautoclose_parenclosers = <SID>Closers(b:jqnoautoclose_parens)
     let b:jqnoautoclose_allclosers = <SID>Closers(b:jqnoautoclose_combined)
