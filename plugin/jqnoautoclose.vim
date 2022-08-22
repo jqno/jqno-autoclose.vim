@@ -118,6 +118,7 @@ function! JqnoAutocloseSmartReturn() abort
         return "\<CR>"
     endif
 
+    let l:first = <SID>FirstChar()
     let l:prev = <SID>PrevChar()
     let l:next = <SID>NextChar()
     let l:prevprev = <SID>PrevChar(1)
@@ -127,6 +128,9 @@ function! JqnoAutocloseSmartReturn() abort
     elseif l:prev ==? ' ' && index(b:jqnoautoclose_parens, l:prevprev) >= 0 &&
                 \ l:next ==? ' ' && <SID>NextChar(1) ==? b:jqnoautoclose_openclose[l:prevprev]
         return "\<BS>\<CR>\<Esc>O"
+    elseif index(b:jqnoautoclose_triplequotes, l:next) >= 0 &&
+                \ l:first ==? l:next
+        return "\<CR>\<Esc>O"
     elseif exists('g:loaded_endwise')
         return "\<CR>\<C-R>=EndwiseDiscretionary()\<CR>"
     else
@@ -202,6 +206,10 @@ endfunction
 
 function! s:PrevChar(i = 0) abort
     return strpart(getline('.'), col('.')-2-a:i, 1)
+endfunction
+
+function! s:FirstChar() abort
+    return strpart(getline('.'), 0, 1)
 endfunction
 
 
