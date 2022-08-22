@@ -23,11 +23,25 @@ endif
 let s:Left = s:Go . "\<Left>"
 let s:Right = s:Go . "\<Right>"
 
+function! s:Config(base, overrides = {}) abort
+    let l:result = deepcopy(a:base)
+    if has_key(a:overrides, 'parens')
+        let l:result.parens = deepcopy(a:overrides.parens)
+    endif
+    if has_key(a:overrides, 'quotes')
+        let l:result.quotes = deepcopy(a:overrides.quotes)
+    endif
+    if has_key(a:overrides, 'triplequotes')
+        let l:result.triplequotes = deepcopy(a:overrides.triplequotes)
+    endif
+    return l:result
+endfunction
+
 let s:jqnoautoclose_openclosers = { '(': ')', '[': ']', '{': '}', '<': '>' }
 let s:jqnoautoclose_code = {
     \   'parens': '([{',
     \   'quotes': '''"`',
-    \   'triplequotes': '"',
+    \   'triplequotes': '',
     \ }
 let s:jqnoautoclose_prose = {
     \   'parens': '([{',
@@ -37,16 +51,19 @@ let s:jqnoautoclose_prose = {
 let s:jqnoautoclose_punctuation = [ '.', ',', ':', ';', '?', '!', '=', '+', '-', '*', '/' ]
 
 let s:jqnoautoclose_config = {
-    \   '_default': s:jqnoautoclose_code,
-    \   'gitcommit': s:jqnoautoclose_prose,
-    \   'html': s:jqnoautoclose_code,
-    \   'markdown': { 'parens': s:jqnoautoclose_prose['parens'], 'quotes': s:jqnoautoclose_prose['quotes'], 'triplequotes': '`:' },
-    \   'text': s:jqnoautoclose_prose,
-    \   'ruby': { 'parens': s:jqnoautoclose_code['parens'], 'quotes': '''"`|', 'triplequotes': s:jqnoautoclose_code['triplequotes'] },
-    \   'rust': { 'parens': s:jqnoautoclose_code['parens'], 'quotes': '"`|', 'triplequotes': s:jqnoautoclose_code['triplequotes'] },
-    \   'vim': { 'parens': s:jqnoautoclose_code['parens'], 'quotes': '''`', 'triplequotes': s:jqnoautoclose_code['triplequotes'] },
-    \   'xml': s:jqnoautoclose_code,
-    \   'xml.pom': s:jqnoautoclose_code,
+    \   '_default': <SID>Config(s:jqnoautoclose_code),
+    \   'gitcommit': <SID>Config(s:jqnoautoclose_prose),
+    \   'java': <SID>Config(s:jqnoautoclose_code, {'triplequotes': '"'}),
+    \   'html': <SID>Config(s:jqnoautoclose_code),
+    \   'markdown': <SID>Config(s:jqnoautoclose_prose, {'triplequotes': '`:'}),
+    \   'text': <SID>Config(s:jqnoautoclose_prose),
+    \   'python': <SID>Config(s:jqnoautoclose_code, {'triplequotes': '"'}),
+    \   'ruby': <SID>Config(s:jqnoautoclose_code, {'quotes': '''"`|'}),
+    \   'rust': <SID>Config(s:jqnoautoclose_code, {'quotes': '"`|'}),
+    \   'scala': <SID>Config(s:jqnoautoclose_code, {'triplequotes': '"'}),
+    \   'vim': <SID>Config(s:jqnoautoclose_code, {'quotes': '''`'}),
+    \   'xml': <SID>Config(s:jqnoautoclose_code),
+    \   'xml.pom': <SID>Config(s:jqnoautoclose_code),
     \ }
 
 
