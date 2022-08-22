@@ -15,11 +15,7 @@ let g:endwise_no_mappings = 1
 " Issue talk: https://github.com/jiangmiao/auto-pairs/issues/3
 " Vim note: https://github.com/vim/vim/releases/tag/v7.4.849
 " Solution 'borrowed' from jiangmiao/auto-pairs
-if v:version > 704 || v:version == 704 && has("patch849")
-  let s:Go = "\<C-G>U"
-else
-  let s:Go = ""
-endif
+let s:Go = "\<C-G>U"
 let s:Left = s:Go . "\<Left>"
 let s:Right = s:Go . "\<Right>"
 
