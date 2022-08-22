@@ -36,6 +36,9 @@ function! s:Config(base, overrides = {}) abort
     if has_key(a:overrides, 'triplequotes')
         let l:result.triplequotes = deepcopy(a:overrides.triplequotes)
     endif
+    if has_key(a:overrides, 'smartreturn_tags')
+        let l:result.smartreturn_tags = deepcopy(a:overrides.smartreturn_tags)
+    endif
     return l:result
 endfunction
 
@@ -46,6 +49,7 @@ let s:jqnoautoclose_code = {
     \   'quotes': '''"`',
     \   'doublequotes': '',
     \   'triplequotes': '',
+    \   'smartreturn_tags': v:false,
     \ }
 let s:jqnoautoclose_prose = {
     \   'parens': '([{',
@@ -53,6 +57,7 @@ let s:jqnoautoclose_prose = {
     \   'quotes': '''"`',
     \   'doublequotes': '',
     \   'triplequotes': '',
+    \   'smartreturn_tags': v:false,
     \ }
 let s:jqnoautoclose_punctuation = [ '.', ',', ':', ';', '?', '!', '=', '+', '-', '*', '/' ]
 
@@ -60,7 +65,7 @@ let s:jqnoautoclose_config = {
     \   '_default': <SID>Config(s:jqnoautoclose_code),
     \   'gitcommit': <SID>Config(s:jqnoautoclose_prose),
     \   'java': <SID>Config(s:jqnoautoclose_code, {'triplequotes': '"'}),
-    \   'html': <SID>Config(s:jqnoautoclose_code),
+    \   'html': <SID>Config(s:jqnoautoclose_code, {'smartreturn_tags': v:true}),
     \   'markdown': <SID>Config(s:jqnoautoclose_prose, {'quotes': '''"`*_', 'doublequotes': '*_', 'triplequotes': '`:'}),
     \   'text': <SID>Config(s:jqnoautoclose_prose),
     \   'python': <SID>Config(s:jqnoautoclose_code, {'triplequotes': '"'}),
@@ -68,8 +73,8 @@ let s:jqnoautoclose_config = {
     \   'rust': <SID>Config(s:jqnoautoclose_code, {'quotes': '"`|'}),
     \   'scala': <SID>Config(s:jqnoautoclose_code, {'triplequotes': '"'}),
     \   'vim': <SID>Config(s:jqnoautoclose_code, {'quotes': '''`'}),
-    \   'xml': <SID>Config(s:jqnoautoclose_code),
-    \   'xml.pom': <SID>Config(s:jqnoautoclose_code),
+    \   'xml': <SID>Config(s:jqnoautoclose_code, {'smartreturn_tags': v:true}),
+    \   'xml.pom': <SID>Config(s:jqnoautoclose_code, {'smartreturn_tags': v:true}),
     \ }
 
 
@@ -135,6 +140,9 @@ function! JqnoAutocloseSmartReturn() abort
         return "\<BS>\<CR>\<Esc>O"
     elseif index(b:jqnoautoclose_triplequotes, l:next) >= 0 &&
                 \ l:first ==? l:next
+        return "\<CR>\<Esc>O"
+    elseif b:jqnoautoclose_smartreturn_tags &&
+                \ l:prev ==? '>' && l:next ==? '<'
         return "\<CR>\<Esc>O"
     elseif exists('g:loaded_endwise')
         return "\<CR>\<C-R>=EndwiseDiscretionary()\<CR>"
@@ -246,6 +254,10 @@ function! s:Triplequotes() abort
     return split(s:jqnoautoclose_config[<SID>Filetype()]['triplequotes'], '\zs')
 endfunction
 
+function! s:SmartreturnTags() abort
+    return s:jqnoautoclose_config[<SID>Filetype()]['smartreturn_tags']
+endfunction
+
 function! s:AllQuotes() abort
     let l:result = deepcopy(b:jqnoautoclose_quotes)
     for c in b:jqnoautoclose_doublequotes
@@ -298,6 +310,7 @@ function! s:CreateMappings() abort
     let b:jqnoautoclose_openclose = <SID>OpenClose(b:jqnoautoclose_combined)
     let b:jqnoautoclose_parenclosers = <SID>Closers(b:jqnoautoclose_parens)
     let b:jqnoautoclose_allclosers = <SID>Closers(b:jqnoautoclose_combined)
+    let b:jqnoautoclose_smartreturn_tags = <SID>SmartreturnTags()
 
     for c in b:jqnoautoclose_parens
         exec 'inoremap <expr><silent><buffer> ' . c . ' JqnoAutocloseOpen("' . c . '", "' . b:jqnoautoclose_openclose[c] . '")'
