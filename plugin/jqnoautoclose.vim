@@ -31,6 +31,9 @@ function! s:Config(base, overrides = {}) abort
     if has_key(a:overrides, 'quotes')
         let l:result.quotes = deepcopy(a:overrides.quotes)
     endif
+    if has_key(a:overrides, 'doublequotes')
+        let l:result.doublequotes = deepcopy(a:overrides.doublequotes)
+    endif
     if has_key(a:overrides, 'triplequotes')
         let l:result.triplequotes = deepcopy(a:overrides.triplequotes)
     endif
@@ -41,11 +44,13 @@ let s:jqnoautoclose_openclosers = { '(': ')', '[': ']', '{': '}', '<': '>' }
 let s:jqnoautoclose_code = {
     \   'parens': '([{',
     \   'quotes': '''"`',
+    \   'doublequotes': '',
     \   'triplequotes': '',
     \ }
 let s:jqnoautoclose_prose = {
     \   'parens': '([{',
     \   'quotes': '''"`',
+    \   'doublequotes': '',
     \   'triplequotes': '',
     \ }
 let s:jqnoautoclose_punctuation = [ '.', ',', ':', ';', '?', '!', '=', '+', '-', '*', '/' ]
@@ -55,7 +60,7 @@ let s:jqnoautoclose_config = {
     \   'gitcommit': <SID>Config(s:jqnoautoclose_prose),
     \   'java': <SID>Config(s:jqnoautoclose_code, {'triplequotes': '"'}),
     \   'html': <SID>Config(s:jqnoautoclose_code),
-    \   'markdown': <SID>Config(s:jqnoautoclose_prose, {'triplequotes': '`:'}),
+    \   'markdown': <SID>Config(s:jqnoautoclose_prose, {'quotes': '''"`*_', 'doublequotes': '*_', 'triplequotes': '`:'}),
     \   'text': <SID>Config(s:jqnoautoclose_prose),
     \   'python': <SID>Config(s:jqnoautoclose_code, {'triplequotes': '"'}),
     \   'ruby': <SID>Config(s:jqnoautoclose_code, {'quotes': '''"`|'}),
@@ -83,18 +88,26 @@ endfunction
 
 function! JqnoAutocloseToggle(char) abort
     if <SID>NextChar() ==? a:char
-        let l:i = 0
-        let l:result = ""
-        while <SID>NextChar(l:i) ==? a:char
-            let l:result .= s:Right
-            let l:i += 1
-        endwhile
-        return l:result
+        if index(b:jqnoautoclose_doublequotes, a:char) >= 0
+            return a:char . a:char . s:Left
+        else
+            let l:i = 0
+            let l:result = ""
+            while <SID>NextChar(l:i) ==? a:char
+                let l:result .= s:Right
+                let l:i += 1
+            endwhile
+            return l:result
+        endif
     endif
-    if <SID>ExpandParenFully(v:false)
+    if <SID>ExpandParenFully(v:false, a:char)
         if index(b:jqnoautoclose_triplequotes, a:char) >= 0 &&
                     \ <SID>PrevChar() ==? a:char && <SID>PrevChar(1) ==? a:char
             return a:char . a:char . a:char . a:char . s:Left . s:Left . s:Left
+        endif
+        if index(b:jqnoautoclose_doublequotes, a:char) >= 0 &&
+                    \ <SID>PrevChar() ==? a:char
+            return a:char . a:char . a:char . s:Left . s:Left
         endif
         if index(b:jqnoautoclose_quotes, a:char) >= 0 &&
                     \ <SID>PrevChar() !=? a:char
@@ -179,11 +192,11 @@ function! JqnoAutocloseSmartJump() abort
     return l:result
 endfunction
 
-function! s:ExpandParenFully(expandIfAfterWord) abort
+function! s:ExpandParenFully(expandIfAfterWord, char = v:null) abort
     let l:nextchar = <SID>NextChar()
     let l:nextok = l:nextchar ==? '' || index(s:jqnoautoclose_punctuation, l:nextchar) >= 0 || index(b:jqnoautoclose_parenclosers, l:nextchar) >= 0
     let l:prevchar = <SID>PrevChar()
-    let l:prevok = a:expandIfAfterWord || l:prevchar !~# '\w'
+    let l:prevok = a:expandIfAfterWord || l:prevchar !~# '\w' || a:char ==? '_'
     return l:nextok && l:prevok
 endfunction
 
@@ -212,12 +225,21 @@ function! s:Quotes() abort
     return split(s:jqnoautoclose_config[<SID>Filetype()]['quotes'], '\zs')
 endfunction
 
+function! s:Doublequotes() abort
+    return split(s:jqnoautoclose_config[<SID>Filetype()]['doublequotes'], '\zs')
+endfunction
+
 function! s:Triplequotes() abort
     return split(s:jqnoautoclose_config[<SID>Filetype()]['triplequotes'], '\zs')
 endfunction
 
 function! s:AllQuotes() abort
     let l:result = deepcopy(b:jqnoautoclose_quotes)
+    for c in b:jqnoautoclose_doublequotes
+        if index(b:jqnoautoclose_quotes, c) == -1
+            let l:result += [c]
+        endif
+    endfor
     for c in b:jqnoautoclose_triplequotes
         if index(b:jqnoautoclose_quotes, c) == -1
             let l:result += [c]
@@ -255,6 +277,7 @@ function! s:CreateMappings() abort
     let b:jqnoautoclose_active = 1
     let b:jqnoautoclose_parens = <SID>Parens()
     let b:jqnoautoclose_quotes = <SID>Quotes()
+    let b:jqnoautoclose_doublequotes = <SID>Doublequotes()
     let b:jqnoautoclose_triplequotes = <SID>Triplequotes()
     let b:jqnoautoclose_all_quotes = <SID>AllQuotes()
     let b:jqnoautoclose_combined = b:jqnoautoclose_parens + b:jqnoautoclose_all_quotes
