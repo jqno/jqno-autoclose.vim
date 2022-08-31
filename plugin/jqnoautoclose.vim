@@ -94,7 +94,7 @@ endfunction
 
 function! JqnoAutocloseToggle(char) abort
     if <SID>NextChar() ==? a:char
-        if index(b:jqnoautoclose_doublequotes, a:char) >= 0
+        if <SID>PrevChar() ==? a:char && index(b:jqnoautoclose_doublequotes, a:char) >= 0
             return a:char . a:char . s:Left
         else
             let l:i = 0
@@ -112,8 +112,8 @@ function! JqnoAutocloseToggle(char) abort
             return a:char . a:char . a:char . a:char . s:Left . s:Left . s:Left
         endif
         if index(b:jqnoautoclose_doublequotes, a:char) >= 0 &&
-                    \ <SID>PrevChar() ==? a:char
-            return a:char . a:char . a:char . s:Left . s:Left
+                    \ <SID>PrevChar() ==? a:char && <SID>PrevChar(1) ==? a:char
+            return a:char . a:char . s:Left . s:Left
         endif
         if index(b:jqnoautoclose_quotes, a:char) >= 0 &&
                     \ <SID>PrevChar() !=? a:char
@@ -209,7 +209,7 @@ function! s:ExpandParenFully(expandIfAfterWord, char = v:null) abort
     let l:nextchar = <SID>NextChar()
     let l:nextok = l:nextchar ==? '' || index(s:jqnoautoclose_punctuation, l:nextchar) >= 0 || index(b:jqnoautoclose_parenclosers, l:nextchar) >= 0
     let l:prevchar = <SID>PrevChar()
-    let l:prevok = a:expandIfAfterWord || l:prevchar !~# '\w' || a:char ==? '_'
+    let l:prevok = a:expandIfAfterWord || l:prevchar !~# '\w' || (a:char ==? '_' && <SID>PrevChar(1) ==? '_')
     return l:nextok && l:prevok
 endfunction
 
