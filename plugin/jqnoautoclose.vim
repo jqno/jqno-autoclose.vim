@@ -144,6 +144,8 @@ function! JqnoAutocloseSmartReturn() abort
     elseif b:jqnoautoclose_smartreturn_tags &&
                 \ l:prev ==? '>' && l:next ==? '<'
         return "\<CR>\<Esc>O"
+    elseif luaeval('pcall(require, "autolist")') && &filetype ==? 'markdown'
+        return "\<CR>\<cmd>lua require('autolist').new()\<CR>"
     elseif exists('g:loaded_endwise')
         return "\<CR>\<C-R>=EndwiseDiscretionary()\<CR>"
     else
