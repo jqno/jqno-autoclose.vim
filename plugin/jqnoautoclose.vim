@@ -144,10 +144,10 @@ function! JqnoAutocloseSmartReturn() abort
     elseif b:jqnoautoclose_smartreturn_tags &&
                 \ l:prev ==? '>' && l:next ==? '<'
         return "\<CR>\<Esc>O"
-    elseif luaeval('pcall(require, "autolist")') && &filetype ==? 'markdown'
-        return "\<CR>\<cmd>lua require('autolist').new()\<CR>"
-    elseif exists('g:loaded_endwise')
-        return "\<CR>\<C-R>=EndwiseDiscretionary()\<CR>"
+    "elseif luaeval('pcall(require, "autolist")') && &filetype ==? 'markdown'
+    "    return "\<CR>\<cmd>lua require('autolist').new()\<CR>"
+    "elseif exists('g:loaded_endwise')
+    "    return "\<CR>\<C-R>=EndwiseDiscretionary()\<CR>"
     else
         return "\<CR>"
     endif
@@ -179,17 +179,7 @@ function! JqnoAutocloseSmartBackspace() abort
 endfunction
 
 function! JqnoAutocloseSmartJump() abort
-    " First, if a CoC jump is possible, do that.
-    if exists('g:did_coc_loaded')
-        if coc#jumpable()
-            return "\<C-r>=coc#rpc#request('doKeymap', ['snippets-expand-jump', ''])\<CR>"
-        endif
-    endif
-    " Then, if an UltiSnips jump is possible, do that.
-    if exists('g:did_plugin_ultisnips') && UltiSnips#CanJumpForwards()
-        return "\<C-R>=UltiSnips#JumpForwards()\<CR>"
-    endif
-    " Next, if at the end of the line and the next line contains a closer, jump to the end of that next line.
+    " If at the end of the line and the next line contains a closer, jump to the end of that next line.
     if <SID>NextChar() ==? '' && index(b:jqnoautoclose_parenclosers, trim(getline(line('.')+1))) >= 0
         return "\<Down>\<End>"
     endif
