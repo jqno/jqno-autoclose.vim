@@ -39,9 +39,6 @@ function! s:Config(base, overrides = {}) abort
     if has_key(a:overrides, 'smartreturn_tags')
         let l:result.smartreturn_tags = deepcopy(a:overrides.smartreturn_tags)
     endif
-    if has_key(a:overrides, 'smartreturn_list')
-        let l:result.smartreturn_list = deepcopy(a:overrides.smartreturn_list)
-    endif
     return l:result
 endfunction
 
@@ -53,7 +50,6 @@ let s:jqnoautoclose_code = {
     \   'doublequotes': '',
     \   'triplequotes': '',
     \   'smartreturn_tags': v:false,
-    \   'smartreturn_list': v:false,
     \ }
 let s:jqnoautoclose_prose = {
     \   'parens': '([{',
@@ -62,10 +58,8 @@ let s:jqnoautoclose_prose = {
     \   'doublequotes': '',
     \   'triplequotes': '',
     \   'smartreturn_tags': v:false,
-    \   'smartreturn_list': v:true,
     \ }
 let s:jqnoautoclose_punctuation = [ '.', ',', ':', ';', '?', '!', '=', '+', '-', '*', '/' ]
-let s:jqnoautoclose_list = { '\d\+\.': '1.', '- \[ \]': '- [ ]', '- \[x\]': '- [ ]', '-': '-', '\*': '*' }
 
 let s:jqnoautoclose_config = {
     \   '_default': <SID>Config(s:jqnoautoclose_code),
@@ -150,23 +144,13 @@ function! JqnoAutocloseSmartReturn() abort
     elseif b:jqnoautoclose_smartreturn_tags &&
                 \ l:prev ==? '>' && l:next ==? '<'
         return "\<CR>\<Esc>O"
-    elseif b:jqnoautoclose_smartreturn_list
-        let l:match = <SID>ListPrefix()
-        " Creating a bulleted list
-        if l:match != ''
-            if getline('.') =~ l:match . '$'
-                return "\<CR>\<Esc>0C"
-            endif
-            if l:match =~ '\d'
-                " Repeat the bullet, and increment it because it's a number
-                return "\<CR>" . l:match . "\<Esc>0\<C-A>A"
-            else
-                " Just repeat the bullet
-                return "\<CR>" . l:match
-            endif
-        endif
+    "elseif luaeval('pcall(require, "autolist")') && &filetype ==? 'markdown'
+    "    return "\<CR>\<cmd>lua require('autolist').new()\<CR>"
+    "elseif exists('g:loaded_endwise')
+    "    return "\<CR>\<C-R>=EndwiseDiscretionary()\<CR>"
+    else
+        return "\<CR>"
     endif
-    return "\<CR>"
 endfunction
 
 function! JqnoAutocloseSmartSpace() abort
@@ -233,15 +217,6 @@ function! s:FirstChar() abort
     return strpart(getline('.'), 0, 1)
 endfunction
 
-function! s:ListPrefix()
-    let l:line = getline('.')
-    for pat in keys(s:jqnoautoclose_list)
-        let l:regex = pat . '\s*'
-        if l:line =~ '^\s*' . l:regex
-            return matchstr(l:line, l:regex)
-        endif
-    endfor
-endfunction
 
 " ***
 " Helpers
@@ -273,10 +248,6 @@ endfunction
 
 function! s:SmartreturnTags() abort
     return s:jqnoautoclose_config[<SID>Filetype()]['smartreturn_tags']
-endfunction
-
-function! s:SmartreturnList() abort
-    return s:jqnoautoclose_config[<SID>Filetype()]['smartreturn_list']
 endfunction
 
 function! s:AllQuotes() abort
@@ -332,7 +303,6 @@ function! s:CreateMappings() abort
     let b:jqnoautoclose_parenclosers = <SID>Closers(b:jqnoautoclose_parens)
     let b:jqnoautoclose_allclosers = <SID>Closers(b:jqnoautoclose_combined)
     let b:jqnoautoclose_smartreturn_tags = <SID>SmartreturnTags()
-    let b:jqnoautoclose_smartreturn_list = <SID>SmartreturnList()
 
     for c in b:jqnoautoclose_parens
         exec 'inoremap <expr><silent><buffer> ' . c . ' JqnoAutocloseOpen("' . c . '", "' . b:jqnoautoclose_openclose[c] . '")'
